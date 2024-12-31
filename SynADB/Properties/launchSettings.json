@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "SYNADB": {
+      "commandName": "Project",
+      "commandLineArgs": "push 仙逆2 /storage/sdcard1/"
+    }
+  }
+}
