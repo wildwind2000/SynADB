@@ -1,0 +1,36 @@
+name: Create Release
+
+on:
+  push:
+    tags:
+      - 'v*'  # 监听以 v 开头的标签推送
+permissions:
+  contents: write  # 允许写入操作，例如创建发布
+
+jobs:
+  create_release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: '9.0.x'  # 根据您的项目需要设置 .NET 版本
+
+      - name: Build
+        run: dotnet publish SynADB/SYNADB.csproj
+
+      - name: Create Release
+        id: create_release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: Release ${{ github.ref_name }} 
+          body: |
+          files: |
+            SynADB/bin/Release/net9.0/win-x64/publish/SYNADB.exe
+        env:
+          GITHUB_TOKEN: ${{ secrets.publish_release }}
