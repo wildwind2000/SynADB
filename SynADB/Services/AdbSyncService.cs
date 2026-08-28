@@ -2,14 +2,14 @@ using System.Diagnostics;
 
 namespace SYNADB.Services
 {
-    public abstract class AdbSyncService(bool force, CancellationToken cancellationToken)
+    public abstract class AdbSyncService(string serial, CancellationToken cancellationToken)
     {
         public CancellationToken cancellationToken = cancellationToken;
         protected readonly string adbPath = "adb";
         protected readonly Dictionary<string, DateTime> existingFiles = [];
         protected readonly HashSet<string> existingDirs = [];
         protected bool hasLoadRemote = false;
-        public bool force = force;
+        public string serial = serial;
         public int updatedFileCount = 0;
         public int totalFileCount = 0;
         private readonly Stopwatch stopwatch = Stopwatch.StartNew();
@@ -21,6 +21,11 @@ namespace SYNADB.Services
             Console.WriteLine($"总共文件数: {AnsiColor.Color(totalFileCount.ToString(), AnsiColor.Green)}"); // 绿色
             Console.WriteLine($"更新文件数: {AnsiColor.Color(updatedFileCount.ToString(), AnsiColor.Green)}"); // 绿色
             Console.WriteLine($"执行耗时: {AnsiColor.Color(stopwatch.Elapsed.TotalSeconds.ToString("F2"), AnsiColor.Green)}秒"); // 绿色
+        }
+
+        private string makeSerialOption(string input)
+        {
+            return string.IsNullOrEmpty(serial) ? input : $"-s {serial} {input}";
         }
 
         /// <summary>
@@ -95,6 +100,9 @@ namespace SYNADB.Services
         protected async Task<(int ExitCode, string Output)> ExecuteAdbCommandAsync(string command)
         {
             using var process = new Process();
+            command = makeSerialOption(command);
+            //Console.WriteLine(command);
+
             process.StartInfo = new ProcessStartInfo
             {
                 FileName = adbPath,

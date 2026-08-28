@@ -19,16 +19,18 @@ namespace SYNADB
             var cmdArg = new Argument<CommandType>("cmd", "命令类型，可选值为 push 或 pull");
             var pathArgs = new Argument<string[]>("paths", "源路径和目标路径，如果只有源路径，则目标路径为当前目录") { Arity = ArgumentArity.OneOrMore };
             var forceOption = new Option<bool>(["--force","-f"], "强制复制，不管文件修改时间是否一致");
+            var serialOption = new Option<string>(["--serial","-s"], "指定要同步的设备");
 
             rootCommand.AddArgument(cmdArg);
             rootCommand.AddArgument(pathArgs);
             rootCommand.AddOption(forceOption);
+            rootCommand.AddOption(serialOption);
 
-            rootCommand.SetHandler(async (CommandType cmd, string[] paths, bool force) =>
+            rootCommand.SetHandler(async (CommandType cmd, string[] paths, bool force, string serial) =>
             {
                 await ExecuteWithErrorHandling(async (cancellationToken) =>
                 {
-                    AdbSyncService service = cmd == CommandType.Push ? new AdbPushService(force, cancellationToken) : new AdbPullService(force, cancellationToken);
+                    AdbSyncService service = cmd == CommandType.Push ? new AdbPushService(force, serial, cancellationToken) : new AdbPullService(force, serial, cancellationToken);
                     var source = paths[0];
                     if(cmd == CommandType.Push && (paths.Length==1 || !paths[1].StartsWith('/')))
                         throw new Exception("push 情况下必须有目标路径，并且目标路径以 / 开头");
@@ -36,7 +38,7 @@ namespace SYNADB
                     await service.Sync(source, target);
                     service.OutputTotalMessage();
                 });
-            }, cmdArg, pathArgs, forceOption);
+            }, cmdArg, pathArgs, forceOption,serialOption);
             return await rootCommand.InvokeAsync(args);
         }
 

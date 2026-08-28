@@ -3,7 +3,7 @@ using System.Threading;
 
 namespace SYNADB.Services
 {
-    public class AdbPullService(bool force, CancellationToken cancellationToken) : AdbSyncService(force, cancellationToken)
+    public class AdbPullService(bool force, string serial, CancellationToken cancellationToken) : AdbSyncService(serial, cancellationToken)
     {
         public override async Task Sync(string sourcePath, string targetPath)
         {
